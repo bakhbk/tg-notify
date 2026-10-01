@@ -1,0 +1,17 @@
+[project]
+name = "tg-notify"
+version = "0.1.0"
+requires-python = ">=3.11"
+
+[project.optional-dependencies]
+test = ["pytest>=9.1.1"]
+
+[project.scripts]
+tg-notify = "tg_notify.__main__:main"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["tg_notify"]
