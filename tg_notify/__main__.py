@@ -15,6 +15,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="tg-notify",
         description="Send a text notification to a Telegram chat.",
+        epilog=(
+            "recommended format (templates/notify.md):\n"
+            "  <icon> <what> · <where>\n"
+            "  <detail 1>\n"
+            "  <detail 2>\n"
+            "  icons: ✅ success | ❌ fail | ⚠️ warning | ℹ️ info\n"
+            "  ≤4 lines, ≤200 chars, no greetings\n"
+            "credentials: --chat flag > TG_CHAT env > .env (TG_TOKEN, TG_CHAT)"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("text", nargs="?", default=None, help="message text")
     parser.add_argument("--file", metavar="PATH", help="read message text from a file")
