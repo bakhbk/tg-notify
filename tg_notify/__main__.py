@@ -33,7 +33,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--truncate",
         type=int,
-        default=500,
+        default=0,
         metavar="N",
         help="max characters before truncation (0 = no limit)",
     )
