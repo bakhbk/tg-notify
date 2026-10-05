@@ -22,7 +22,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "  <detail 2>\n"
             "  icons: ✅ success | ❌ fail | ⚠️ warning | ℹ️ info\n"
             "  ≤4 lines, ≤200 chars, no greetings\n"
-            "credentials: --chat flag > TG_CHAT env > .env (TG_TOKEN, TG_CHAT)"
+            "credentials: --chat flag > TG_TOKEN/TG_CHAT env > .env (TG_TOKEN, TG_CHAT)\n"
+        ".env search order: $TG_NOTIFY_ENV > ~/.config/tg-notify/.env > ./.env"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -40,10 +41,19 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def load_env(path: str | Path = ".env") -> dict[str, str]:
+def env_candidates() -> list[Path]:
+    """Where to look for a .env file, in priority order."""
+    cands: list[Path] = []
+    if extra := os.environ.get("TG_NOTIFY_ENV"):
+        cands.append(Path(extra).expanduser())
+    cands.append(Path.home() / ".config" / "tg-notify" / ".env")
+    cands.append(Path(".env"))
+    return cands
+
+
+def parse_env_file(p: Path) -> dict[str, str]:
     """Parse a .env file, returning only TG_TOKEN / TG_CHAT if present."""
     result: dict[str, str] = {}
-    p = Path(path)
     if not p.is_file():
         return result
     for line in p.read_text(encoding="utf-8").splitlines():
@@ -99,7 +109,11 @@ def main(argv: list[str] | None = None) -> int:
         print("❌ not sent: no text provided")
         return 1
 
-    env_file = load_env()
+    env_file: dict[str, str] = {}
+    for cand in env_candidates():
+        env_file = parse_env_file(cand)
+        if env_file.get("TG_TOKEN"):
+            break
 
     token = os.environ.get("TG_TOKEN") or env_file.get("TG_TOKEN")
     if not token:

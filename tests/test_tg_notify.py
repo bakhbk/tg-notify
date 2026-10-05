@@ -7,7 +7,15 @@ import socket
 import urllib.error
 import urllib.request
 
+import pytest
+
 from tg_notify import __main__ as tg_main
+
+
+@pytest.fixture(autouse=True)
+def _isolate_home(monkeypatch, tmp_path):
+    """Keep tests from reading the real ~/.config/tg-notify/.env."""
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
 
 
 def _patch_urlopen(monkeypatch, exc=None, return_value=None):
