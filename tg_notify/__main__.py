@@ -38,6 +38,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         metavar="N",
         help="max characters before truncation (0 = no limit)",
     )
+    parser.add_argument(
+        "--parse-mode",
+        choices=["", "HTML", "Markdown", "MarkdownV2"],
+        default="",
+        metavar="MODE",
+        help="Telegram parse mode: '' (plain, default), HTML, Markdown, MarkdownV2",
+    )
     return parser.parse_args(argv)
 
 
@@ -76,11 +83,12 @@ def truncate(text: str, limit: int) -> str:
     return text[:limit] + f"\n[truncated, total {len(text)} chars]"
 
 
-def send(token: str, chat_id: str, text: str, silent: bool) -> None:
+def send(token: str, chat_id: str, text: str, silent: bool, parse_mode: str = "") -> None:
     url = f"https://api.telegram.org/bot{token}/sendMessage"
-    payload = json.dumps(
-        {"chat_id": chat_id, "text": text, "disable_notification": silent}
-    ).encode("utf-8")
+    data = {"chat_id": chat_id, "text": text, "disable_notification": silent}
+    if parse_mode:
+        data["parse_mode"] = parse_mode
+    payload = json.dumps(data).encode("utf-8")
     request = urllib.request.Request(
         url, data=payload, headers={"Content-Type": "application/json"}, method="POST"
     )
@@ -128,7 +136,7 @@ def main(argv: list[str] | None = None) -> int:
     text = truncate(text, args.truncate)
 
     try:
-        send(token, chat, text, args.silent)
+        send(token, chat, text, args.silent, args.parse_mode)
     except Exception as e:
         print(f"❌ not sent: {e}")
         return 1
